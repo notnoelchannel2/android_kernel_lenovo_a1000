@@ -1620,6 +1620,7 @@ static int hub_configure(struct usb_hub *hub,
 
 fail:
 	hdev->maxchild = 0;
+fail_keep_maxchild:
 	dev_err (hub_dev, "config failed, %s (err %d)\n",
 			message, ret);
 	/* hub_disconnect() frees urb and descriptor */
