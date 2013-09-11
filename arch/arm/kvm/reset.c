@@ -62,7 +62,9 @@ int kvm_reset_vcpu(struct kvm_vcpu *vcpu)
 	switch (vcpu->arch.target) {
 	case KVM_ARM_TARGET_CORTEX_A7:
 	case KVM_ARM_TARGET_CORTEX_A15:
-		reset_regs = &cortexa_regs_reset;
+		if (vcpu->vcpu_id > a15_max_cpu_idx)
+			return -EINVAL;
+		reset_regs = &a15_regs_reset;
 		vcpu->arch.midr = read_cpuid_id();
 		cpu_vtimer_irq = &cortexa_vtimer_irq;
 		break;
