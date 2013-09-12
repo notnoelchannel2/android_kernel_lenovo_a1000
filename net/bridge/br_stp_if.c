@@ -128,6 +128,7 @@ static void br_stp_start(struct net_bridge *br)
 	char *argv[] = { BR_STP_PROG, br->dev->name, "start", NULL };
 	char *envp[] = { NULL };
 
+<<<<<<< HEAD
 	if (net_eq(dev_net(br->dev), &init_net))
 		r = call_usermodehelper(BR_STP_PROG, argv, envp, UMH_WAIT_PROC);
 	else
