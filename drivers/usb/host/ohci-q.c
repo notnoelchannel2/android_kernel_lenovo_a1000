@@ -41,6 +41,7 @@ finish_urb(struct ohci_hcd *ohci, struct urb *urb, int status)
 __releases(ohci->lock)
 __acquires(ohci->lock)
 {
+	struct device *dev = ohci_to_hcd(ohci)->self.controller;
 	struct usb_host_endpoint *ep = urb->ep;
 	struct urb_priv *urb_priv;
 
