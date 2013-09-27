@@ -4405,6 +4405,7 @@ int btrfs_reloc_clone_csums(struct inode *inode, u64 file_pos, u64 len)
 	size_t offset;
 	int ret;
 	u64 disk_bytenr;
+	u64 new_bytenr;
 	LIST_HEAD(list);
 
 	ordered = btrfs_lookup_ordered_extent(inode, file_pos);
@@ -4420,15 +4421,20 @@ int btrfs_reloc_clone_csums(struct inode *inode, u64 file_pos, u64 len)
 		sums = list_entry(list.next, struct btrfs_ordered_sum, list);
 		list_del_init(&sums->list);
 
-		sector_sum = sums->sums;
-		sums->bytenr = ordered->start;
-
-		offset = 0;
-		while (offset < sums->len) {
-			sector_sum->bytenr += ordered->start - disk_bytenr;
-			sector_sum++;
-			offset += root->sectorsize;
-		}
+		/*
+		 * We need to offset the new_bytenr based on where the csum is.
+		 * We need to do this because we will read in entire prealloc
+		 * extents but we may have written to say the middle of the
+		 * prealloc extent, so we need to make sure the csum goes with
+		 * the right disk offset.
+		 *
+		 * We can do this because the data reloc inode refers strictly
+		 * to the on disk bytes, so we don't have to worry about
+		 * disk_len vs real len like with real inodes since it's all
+		 * disk length.
+		 */
+		new_bytenr = ordered->start + (sums->bytenr - disk_bytenr);
+		sums->bytenr = new_bytenr;
 
 		btrfs_add_ordered_sum(inode, ordered, sums);
 	}
