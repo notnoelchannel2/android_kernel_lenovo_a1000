@@ -159,14 +159,18 @@ static void cn_rx_skb(struct sk_buff *skb)
 	struct nlmsghdr *nlh;
 	int len, err;
 
+	skb = skb_get(__skb);
+
 	if (skb->len >= NLMSG_HDRLEN) {
 		nlh = nlmsg_hdr(skb);
 		len = nlmsg_len(nlh);
 
 		if (len < (int)sizeof(struct cn_msg) ||
 		    skb->len < nlh->nlmsg_len ||
-		    len > CONNECTOR_MAX_MSG_SIZE)
+		    len > CONNECTOR_MAX_MSG_SIZE) {
+			kfree_skb(skb);
 			return;
+		}
 
 		err = cn_call_callback(skb_get(skb));
 		if (err < 0)
