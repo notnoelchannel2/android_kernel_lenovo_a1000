@@ -476,6 +476,21 @@ static unsigned int netem_drop(struct Qdisc *sch)
 	unsigned int len;
 
 	len = qdisc_queue_drop(sch);
+	if (!len) {
+		struct rb_node *p = rb_first(&q->t_root);
+
+		if (p) {
+			struct sk_buff *skb = netem_rb_to_skb(p);
+
+			rb_erase(p, &q->t_root);
+			sch->q.qlen--;
+			skb->next = NULL;
+			skb->prev = NULL;
+			len = qdisc_pkt_len(skb);
+			sch->qstats.backlog -= len;
+			kfree_skb(skb);
+		}
+	}
 	if (!len && q->qdisc && q->qdisc->ops->drop)
 	    len = q->qdisc->ops->drop(q->qdisc);
 	if (len)
