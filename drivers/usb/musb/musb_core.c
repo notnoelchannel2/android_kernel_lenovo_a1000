@@ -1815,6 +1815,7 @@ static void musb_free(struct musb *musb)
 	}
 	if (is_dma_capable() && musb->dma_controller) {
 		struct dma_controller	*c = musb->dma_controller;
+	cancel_work_sync(&musb->irq_work);
 
 		(void) c->stop(c);
 		dma_controller_destroy(c);
