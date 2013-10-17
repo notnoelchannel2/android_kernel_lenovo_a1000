@@ -168,15 +168,23 @@ static void vmbus_process_rescind_offer(struct work_struct *work)
 	unsigned long flags;
 	struct vmbus_channel_relid_released msg;
 
-	vmbus_device_unregister(channel->device_obj);
+	if (channel->device_obj)
+		vmbus_device_unregister(channel->device_obj);
 	memset(&msg, 0, sizeof(struct vmbus_channel_relid_released));
 	msg.child_relid = channel->offermsg.child_relid;
 	msg.header.msgtype = CHANNELMSG_RELID_RELEASED;
 	vmbus_post_msg(&msg, sizeof(struct vmbus_channel_relid_released));
 
-	spin_lock_irqsave(&vmbus_connection.channel_lock, flags);
-	list_del(&channel->listentry);
-	spin_unlock_irqrestore(&vmbus_connection.channel_lock, flags);
+	if (channel->primary_channel == NULL) {
+		spin_lock_irqsave(&vmbus_connection.channel_lock, flags);
+		list_del(&channel->listentry);
+		spin_unlock_irqrestore(&vmbus_connection.channel_lock, flags);
+	} else {
+		primary_channel = channel->primary_channel;
+		spin_lock_irqsave(&primary_channel->sc_lock, flags);
+		list_del(&channel->sc_list);
+		spin_unlock_irqrestore(&primary_channel->sc_lock, flags);
+	}
 	free_channel(channel);
 }
 
