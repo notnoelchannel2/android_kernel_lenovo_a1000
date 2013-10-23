@@ -245,28 +245,10 @@ static int update_ftrace_func(unsigned long ip, void *new)
 	return ret;
 }
 
-int ftrace_update_ftrace_func(ftrace_func_t func)
-{
-	unsigned long ip = (unsigned long)(&ftrace_call);
-	unsigned char *new;
-	int ret;
-
-	new = ftrace_call_replace(ip, (unsigned long)func);
-	ret = update_ftrace_func(ip, new);
-
-	/* Also update the regs callback function */
-	if (!ret) {
-		ip = (unsigned long)(&ftrace_regs_call);
-		new = ftrace_call_replace(ip, (unsigned long)func);
-		ret = update_ftrace_func(ip, new);
-	}
-
-	return ret;
-}
-
 static int is_ftrace_caller(unsigned long ip)
 {
-	if (ip == ftrace_update_func)
+	if (ip == (unsigned long)(&ftrace_call) ||
+		ip == (unsigned long)(&ftrace_regs_call))
 		return 1;
 
 	return 0;
