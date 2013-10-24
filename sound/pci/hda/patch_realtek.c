@@ -3962,7 +3962,7 @@ static int patch_alc269(struct hda_codec *codec)
 	case 0x10ec0255:
 		spec->codec_variant = ALC269_TYPE_ALC255;
 		break;
-	}
+s	}
 
 	/* automatic parse from the BIOS config */
 	err = alc269_parse_auto_config(codec);
