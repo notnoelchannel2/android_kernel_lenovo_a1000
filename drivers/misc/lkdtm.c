@@ -275,6 +275,15 @@ static int recursive_loop(int a)
         	return recursive_loop(a);
 }
 
+
+static noinline void corrupt_stack(void)
+{
+	/* Use default char array length that triggers stack protection. */
+	char data[8];
+
+	memset((void *)data, 0, 64);
+}
+
 static void lkdtm_do_action(enum ctype which)
 {
 	switch (which) {
@@ -294,13 +303,9 @@ static void lkdtm_do_action(enum ctype which)
 	case CT_OVERFLOW:
 		(void) recursive_loop(0);
 		break;
-	case CT_CORRUPT_STACK: {
-		volatile u32 data[8];
-		volatile u32 *p = data;
-
-		p[12] = 0x12345678;
+	case CT_CORRUPT_STACK:
+		corrupt_stack();
 		break;
-	}
 	case CT_UNALIGNED_LOAD_STORE_WRITE: {
 		static u8 data[5] __attribute__((aligned(4))) = {1, 2,
 				3, 4, 5};
