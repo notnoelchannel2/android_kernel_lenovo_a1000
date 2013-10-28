@@ -474,7 +474,13 @@ gss_alloc_msg(struct gss_auth *gss_auth, struct rpc_clnt *clnt,
 	atomic_set(&gss_msg->count, 1);
 	gss_msg->uid = uid;
 	gss_msg->auth = gss_auth;
-	gss_encode_msg(gss_msg, clnt, service_name);
+	switch (vers) {
+	case 0:
+		gss_encode_v0_msg(gss_msg);
+		break;
+	default:
+		gss_encode_v1_msg(gss_msg, service_name, gss_auth->target_name);
+	};
 	return gss_msg;
 }
 
