@@ -186,11 +186,11 @@ static int pcsp_probe(struct platform_device *dev)
 
 static int pcsp_remove(struct platform_device *dev)
 {
-	struct snd_pcsp *chip = platform_get_drvdata(dev);
-	alsa_card_pcsp_exit(chip);
-	pcspkr_input_remove(chip->input_dev);
-	platform_set_drvdata(dev, NULL);
-	return 0;
+        struct snd_pcsp *chip = platform_get_drvdata(dev);
+        alsa_card_pcsp_exit(chip);
+        pcspkr_input_remove(chip->input_dev);
+        platform_set_drvdata(dev, NULL);
+        return 0;
 }
 
 static void pcsp_stop_beep(struct snd_pcsp *chip)
