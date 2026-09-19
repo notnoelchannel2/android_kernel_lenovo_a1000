@@ -420,6 +420,19 @@ int avtab_read_item(struct avtab *a, void *fp, struct policydb *pol,
 	key.target_class = le16_to_cpu(buf16[items++]);
 	key.specified = le16_to_cpu(buf16[items++]);
 
+	/*
+	 * Android M v30 ioctl operation rule: u8 type + u32 perms[8].
+	 * ponytail: skipped, so ioctl stays governed by the plain "ioctl"
+	 * permission like v28; port per-command checks if ever needed.
+	 */
+	if (key.specified & AVTAB_OP) {
+		u8 op_buf[1 + 8 * sizeof(u32)];
+
+		if (vers < POLICYDB_VERSION_IOCTL_OPERATIONS)
+			return -EINVAL;
+		return next_entry(op_buf, fp, sizeof(op_buf));
+	}
+
 	if (!policydb_type_isvalid(pol, key.source_type) ||
 	    !policydb_type_isvalid(pol, key.target_type) ||
 	    !policydb_class_isvalid(pol, key.target_class)) {

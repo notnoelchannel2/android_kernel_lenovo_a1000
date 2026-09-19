@@ -35,6 +35,8 @@ struct avtab_key {
 #define AVTAB_MEMBER		0x0020
 #define AVTAB_CHANGE		0x0040
 #define AVTAB_TYPE		(AVTAB_TRANSITION | AVTAB_MEMBER | AVTAB_CHANGE)
+/* Android M (libsepol 6.0) policy v30: per-command ioctl rules; read and dropped */
+#define AVTAB_OP		0x7700
 #define AVTAB_ENABLED_OLD   0x80000000 /* reserved for used in cond_avtab */
 #define AVTAB_ENABLED		0x8000 /* reserved for used in cond_avtab */
 	u16 specified;	/* what field is specified */
