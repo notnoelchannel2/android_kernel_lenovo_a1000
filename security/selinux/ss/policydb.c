@@ -143,6 +143,16 @@ static struct policydb_compat_info policydb_compat[] = {
 		.sym_num	= SYM_NUM,
 		.ocon_num	= OCON_NUM,
 	},
+	{
+		.version	= POLICYDB_VERSION_CONSTRAINT_NAMES,
+		.sym_num	= SYM_NUM,
+		.ocon_num	= OCON_NUM,
+	},
+	{
+		.version	= POLICYDB_VERSION_IOCTL_OPERATIONS,
+		.sym_num	= SYM_NUM,
+		.ocon_num	= OCON_NUM,
+	},
 };
 
 static struct policydb_compat_info *policydb_lookup_compat(int version)
@@ -1156,8 +1166,24 @@ bad:
 	return rc;
 }
 
-static int read_cons_helper(struct constraint_node **nodep, int ncons,
-			    int allowxtarget, void *fp)
+/* v29 type_set after CEXPR_NAMES: types, negset, flags. Only for audit2allow; dropped. */
+static int skip_type_set(void *fp)
+{
+	struct ebitmap e;
+	__le32 buf[1];
+	int rc, i;
+
+	for (i = 0; i < 2; i++) {
+		rc = ebitmap_read(&e, fp);
+		if (rc)
+			return rc;
+		ebitmap_destroy(&e);
+	}
+	return next_entry(buf, fp, sizeof(u32));
+}
+
+static int read_cons_helper(struct policydb *p, struct constraint_node **nodep,
+			    int ncons, int allowxtarget, void *fp)
 {
 	struct constraint_node *c, *lc;
 	struct constraint_expr *e, *le;
@@ -1225,6 +1251,12 @@ static int read_cons_helper(struct constraint_node **nodep, int ncons,
 				rc = ebitmap_read(&e->names, fp);
 				if (rc)
 					return rc;
+				if (p->policyvers >=
+				    POLICYDB_VERSION_CONSTRAINT_NAMES) {
+					rc = skip_type_set(fp);
+					if (rc)
+						return rc;
+				}
 				break;
 			default:
 				return -EINVAL;
@@ -1301,7 +1333,7 @@ static int class_read(struct policydb *p, struct hashtab *h, void *fp)
 			goto bad;
 	}
 
-	rc = read_cons_helper(&cladatum->constraints, ncons, 0, fp);
+	rc = read_cons_helper(p, &cladatum->constraints, ncons, 0, fp);
 	if (rc)
 		goto bad;
 
@@ -1311,7 +1343,7 @@ static int class_read(struct policydb *p, struct hashtab *h, void *fp)
 		if (rc)
 			goto bad;
 		ncons = le32_to_cpu(buf[0]);
-		rc = read_cons_helper(&cladatum->validatetrans, ncons, 1, fp);
+		rc = read_cons_helper(p, &cladatum->validatetrans, ncons, 1, fp);
 		if (rc)
 			goto bad;
 	}
@@ -2793,6 +2825,21 @@ static int write_cons_helper(struct policydb *p, struct constraint_node *node,
 				rc = ebitmap_write(&e->names, fp);
 				if (rc)
 					return rc;
+				if (p->policyvers >=
+				    POLICYDB_VERSION_CONSTRAINT_NAMES) {
+					struct ebitmap empty;
+
+					ebitmap_init(&empty);
+					rc = ebitmap_write(&empty, fp);
+					if (!rc)
+						rc = ebitmap_write(&empty, fp);
+					if (!rc) {
+						buf[0] = 0;
+						rc = put_entry(buf, sizeof(u32), 1, fp);
+					}
+					if (rc)
+						return rc;
+				}
 				break;
 			default:
 				break;
