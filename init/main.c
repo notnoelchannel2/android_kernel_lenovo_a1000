@@ -75,7 +75,6 @@
 #include <linux/blkdev.h>
 #include <linux/elevator.h>
 #include <linux/bootperf.h>
-#include <linux/sched_clock.h>
 #include <linux/random.h>
 
 #include <asm/io.h>
