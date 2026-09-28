@@ -38,7 +38,7 @@ static int mali_mem_os_shrink(int nr_to_scan, gfp_t gfp_mask);
 static int mali_mem_os_shrink(struct shrinker *shrinker, int nr_to_scan, gfp_t gfp_mask);
 #endif
 #else
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 13, 0)
 static int mali_mem_os_shrink(struct shrinker *shrinker, struct shrink_control *sc);
 #else
 static unsigned long mali_mem_os_shrink(struct shrinker *shrinker, struct shrink_control *sc);
@@ -66,7 +66,7 @@ static struct mali_mem_os_allocator {
 	.allocated_pages = ATOMIC_INIT(0),
 	.allocation_limit = 0,
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 13, 0)
 	.shrinker.shrink = mali_mem_os_shrink,
 #else
 	.shrinker.count_objects = mali_mem_os_shrink_count,
@@ -503,7 +503,7 @@ static int mali_mem_os_shrink(int nr_to_scan, gfp_t gfp_mask)
 static int mali_mem_os_shrink(struct shrinker *shrinker, int nr_to_scan, gfp_t gfp_mask)
 #endif /* Linux < 2.6.35 */
 #else
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 13, 0)
 static int mali_mem_os_shrink(struct shrinker *shrinker, struct shrink_control *sc)
 #else
 static unsigned long mali_mem_os_shrink(struct shrinker *shrinker, struct shrink_control *sc)
@@ -554,7 +554,7 @@ static unsigned long mali_mem_os_shrink(struct shrinker *shrinker, struct shrink
 		cancel_delayed_work(&mali_mem_os_allocator.timed_shrinker);
 	}
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 13, 0)
 	return mali_mem_os_shrink_count(shrinker, sc);
 #else
 	return nr;
