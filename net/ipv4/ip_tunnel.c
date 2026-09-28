@@ -674,10 +674,9 @@ void ip_tunnel_xmit(struct sk_buff *skb, struct net_device *dev,
 		return;
 	}
 
-	err = iptunnel_xmit(dev_net(dev), rt, skb,
-			    fl4.saddr, fl4.daddr, protocol,
-			    tos, ttl, df);
-	iptunnel_xmit_stats(err, &dev->stats, dev->tstats);
+	/* Replace the old iptunnel_xmit and stats call with this: */
+	skb_dst_drop(skb);
+	skb_dst_set(skb, &rt->dst);
 
 	/* Push down and install the IP header. */
 	skb_push(skb, sizeof(struct iphdr));
